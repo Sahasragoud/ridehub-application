@@ -8,11 +8,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class PlatformApplication {
 
-	public static Logger LOGGER = LoggerFactory.getLogger(PlatformApplication.class);
+	public static Logger log = LoggerFactory.getLogger(PlatformApplication.class);
 	public static void main(String[] args) {
-		LOGGER.info("RideHub Application has been started");
+		log.info("RideHub Application has been started");
 		SpringApplication.run(PlatformApplication.class, args);
-		LOGGER.info("RideHub Application has been ended");
+		log.info("RideHub Application has been ended");
 
 	}
 
