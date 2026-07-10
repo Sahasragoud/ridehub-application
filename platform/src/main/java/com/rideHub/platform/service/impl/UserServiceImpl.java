@@ -10,20 +10,27 @@ import com.rideHub.platform.exception.EmailAlreadyExistsException;
 import com.rideHub.platform.exception.InvalidCredentialsException;
 import com.rideHub.platform.exception.ResourceNotFoundException;
 import com.rideHub.platform.repository.UserRepository;
+import com.rideHub.platform.security.jwt.JwtService;
+import com.rideHub.platform.security.service.CustomUserDetailsService;
 import com.rideHub.platform.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import static com.rideHub.platform.PlatformApplication.log;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+    private final CustomUserDetailsService userDetailsService;
 
     @Override
     public UserResponse register(RegisterRequest request) {
@@ -52,21 +59,24 @@ public class UserServiceImpl implements UserService {
     @Override
     public AuthResponse login(LoginRequest request) {
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                        new InvalidCredentialsException("Invalid email or password."));
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new InvalidCredentialsException("Invalid email or password.");
-        }
+        UserDetails userDetails =
+                userDetailsService.loadUserByUsername(request.getEmail());
+
+        String token = jwtService.generateToken(userDetails);
 
         return AuthResponse.builder()
-                .token("JWT_WILL_BE_GENERATED_IN_SPRINT_2_5")
+                .token(token)
                 .type("Bearer")
                 .expiresIn(86400000L)
                 .build();
     }
-
 
     @Override
     public UserResponse getProfile(String email) {
