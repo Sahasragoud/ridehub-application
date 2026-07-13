@@ -1,5 +1,6 @@
 package com.rideHub.authService.security.jwt;
 
+import com.rideHub.authService.entity.User;
 import com.rideHub.authService.security.config.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -22,7 +23,7 @@ public class JwtService {
     /**
      * Generate JWT Token
      */
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(UserDetails userDetails, User user) {
 
         String role = userDetails.getAuthorities()
                 .stream()
@@ -32,6 +33,7 @@ public class JwtService {
 
         return Jwts.builder()
                 .subject(userDetails.getUsername())
+                .claim("userId", user.getId())
                 .claim("role", role)
                 .issuedAt(new Date())
                 .expiration(new Date(

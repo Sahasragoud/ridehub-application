@@ -83,10 +83,14 @@ public class UserServiceImpl implements UserService {
             throw ex;
         }
 
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found."));
+
         UserDetails userDetails =
                 userDetailsService.loadUserByUsername(request.getEmail());
 
-        String token = jwtService.generateToken(userDetails);
+        String token = jwtService.generateToken(userDetails, user);
 
         log.info("User '{}' authenticated successfully.", request.getEmail());
 
