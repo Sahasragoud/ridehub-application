@@ -3,6 +3,8 @@ package com.rideHub.authService.kafka.dto;
 import com.rideHub.authService.enums.Role;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Builder
@@ -19,4 +21,6 @@ public class UserRegisteredEvent {
     private String phone;
 
     private Role role;
+
+    private LocalDateTime occurredAt;
 }

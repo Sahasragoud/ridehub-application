@@ -8,6 +8,9 @@ import com.rideHub.authService.entity.User;
 import com.rideHub.authService.enums.Role;
 import com.rideHub.authService.exception.EmailAlreadyExistsException;
 import com.rideHub.authService.exception.ResourceNotFoundException;
+import com.rideHub.authService.kafka.dto.UserLoggedInEvent;
+import com.rideHub.authService.kafka.dto.UserRegisteredEvent;
+import com.rideHub.authService.kafka.publisher.AuthenticationEventPublisher;
 import com.rideHub.authService.repository.UserRepository;
 import com.rideHub.authService.security.config.JwtProperties;
 import com.rideHub.authService.security.jwt.JwtService;
@@ -38,6 +41,7 @@ public class UserServiceImpl implements UserService {
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
     private final JwtProperties jwtProperties;
+    private final AuthenticationEventPublisher authenticationEventPublisher;
 
     @Override
     @Transactional
@@ -58,6 +62,16 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         User savedUser = userRepository.save(user);
+
+        authenticationEventPublisher.publishUserRegistered(
+                UserRegisteredEvent.builder()
+                        .id(savedUser.getId())
+                        .fullName(savedUser.getFullName())
+                        .email(savedUser.getEmail())
+                        .phone(savedUser.getPhone())
+                        .role(savedUser.getRole())
+                        .build()
+        );
 
         log.info("User registered successfully with ID: {}", savedUser.getId());
 
@@ -91,6 +105,16 @@ public class UserServiceImpl implements UserService {
                 userDetailsService.loadUserByUsername(request.getEmail());
 
         String token = jwtService.generateToken(userDetails, user);
+
+        authenticationEventPublisher.publishUserLoggedIn(
+                UserLoggedInEvent.builder()
+                        .id(user.getId())
+                        .fullName(user.getFullName())
+                        .email(user.getEmail())
+                        .phone(user.getPhone())
+                        .role(user.getRole())
+                        .build()
+        );
 
         log.info("User '{}' authenticated successfully.", request.getEmail());
 
