@@ -3,8 +3,7 @@ package com.rideHub.authService.security.service;
 import com.rideHub.authService.entity.User;
 import com.rideHub.authService.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.*;
         import org.springframework.stereotype.Service;
@@ -12,14 +11,11 @@ import org.springframework.security.core.userdetails.*;
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
-
-    private static final Logger log =
-            LoggerFactory.getLogger(CustomUserDetailsService.class);
-
     @Override
     public UserDetails loadUserByUsername(String email)
             throws UsernameNotFoundException {

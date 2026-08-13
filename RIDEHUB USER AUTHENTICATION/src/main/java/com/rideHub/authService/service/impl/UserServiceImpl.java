@@ -10,15 +10,14 @@ import com.rideHub.authService.exception.EmailAlreadyExistsException;
 import com.rideHub.authService.exception.ResourceNotFoundException;
 import com.rideHub.authService.kafka.dto.UserLoggedInEvent;
 import com.rideHub.authService.kafka.dto.UserRegisteredEvent;
-import com.rideHub.authService.kafka.publisher.AuthenticationEventPublisher;
+import com.rideHub.authService.kafka.publisher.AuthEventPublisher;
 import com.rideHub.authService.repository.UserRepository;
 import com.rideHub.authService.security.config.JwtProperties;
 import com.rideHub.authService.security.jwt.JwtService;
 import com.rideHub.authService.security.service.CustomUserDetailsService;
 import com.rideHub.authService.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -30,10 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class UserServiceImpl implements UserService {
-
-    private static final Logger log =
-            LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -41,7 +38,7 @@ public class UserServiceImpl implements UserService {
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
     private final JwtProperties jwtProperties;
-    private final AuthenticationEventPublisher authenticationEventPublisher;
+    private final AuthEventPublisher authEventPublisher;
 
     @Override
     @Transactional
@@ -63,7 +60,7 @@ public class UserServiceImpl implements UserService {
 
         User savedUser = userRepository.save(user);
 
-        authenticationEventPublisher.publishUserRegistered(
+        authEventPublisher.publishUserRegistered(
                 UserRegisteredEvent.builder()
                         .id(savedUser.getId())
                         .fullName(savedUser.getFullName())
@@ -106,7 +103,7 @@ public class UserServiceImpl implements UserService {
 
         String token = jwtService.generateToken(userDetails, user);
 
-        authenticationEventPublisher.publishUserLoggedIn(
+        authEventPublisher.publishUserLoggedIn(
                 UserLoggedInEvent.builder()
                         .id(user.getId())
                         .fullName(user.getFullName())

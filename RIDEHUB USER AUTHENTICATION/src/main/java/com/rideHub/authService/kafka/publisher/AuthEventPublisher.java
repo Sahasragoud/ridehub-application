@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 @Slf4j
-public class AuthenticationEventPublisher {
+public class AuthEventPublisher {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
