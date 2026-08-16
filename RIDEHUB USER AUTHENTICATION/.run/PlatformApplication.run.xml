@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="PlatformApplication" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="ALTERNATIVE_JRE_PATH" value="17" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <envs>
+      <env name="DB_PASSWORD" value="Sahasra@04" />
+      <env name="DB_URL" value="jdbc:postgresql://localhost:5432/ridehub_db" />
+      <env name="DB_USERNAME" value="postgres" />
+      <env name="JWT_SECRET" value="ThisIsAVeryLongSecretKeyForRideHubApplication2026DevelopmentKey" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="com.rideHub.authService.PlatformApplication" />
+    <module name="authService" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
