@@ -18,14 +18,6 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                dir('RIDEHUB USER AUTHENTICATION') {
-                    sh 'mvn clean package'
-                }
-            }
-        }
-
         stage('Test') {
             steps {
                 dir('RIDEHUB USER AUTHENTICATION') {
@@ -46,15 +38,23 @@ pipeline {
             }
         }
 
+        stage('Build') {
+            steps {
+                dir('RIDEHUB USER AUTHENTICATION') {
+                    sh 'mvn package -DskipTests'
+                }
+            }
+        }
+
     }
 
     post {
         success {
-            echo 'Build completed successfully!'
+            echo 'Tests and build completed successfully!'
         }
 
         failure {
-            echo 'Build failed. Check the Jenkins console output.'
+            echo 'Pipeline failed. Check the Jenkins console output.'
         }
     }
 }
