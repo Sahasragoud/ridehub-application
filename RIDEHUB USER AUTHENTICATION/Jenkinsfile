@@ -21,7 +21,7 @@ pipeline {
         stage('Build') {
             steps {
                 dir('RIDEHUB USER AUTHENTICATION') {
-                    sh 'mvn clean package -DskipTests'
+                    sh 'mvn clean package'
                 }
             }
         }
