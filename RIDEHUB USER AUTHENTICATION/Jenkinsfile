@@ -1,0 +1,40 @@
+pipeline {
+
+    agent any
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Verify Environment') {
+            steps {
+                sh 'java -version'
+                sh 'mvn -version'
+                sh 'docker --version'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                dir('RIDEHUB USER AUTHENTICATION') {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+    }
+
+    post {
+        success {
+            echo 'Build completed successfully!'
+        }
+
+        failure {
+            echo 'Build failed. Check the Jenkins console output.'
+        }
+    }
+}
