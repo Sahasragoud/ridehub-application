@@ -46,6 +46,13 @@ pipeline {
             }
         }
 
+        stage('Docker Build') {
+            steps {
+                dir('RIDEHUB USER AUTHENTICATION') {
+                    sh 'docker build -t ridehub-auth-service:${BUILD_NUMBER} .'
+                }
+            }
+        }
     }
 
     post {
