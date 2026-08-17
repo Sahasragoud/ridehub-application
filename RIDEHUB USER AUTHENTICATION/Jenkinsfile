@@ -26,6 +26,26 @@ pipeline {
             }
         }
 
+        stage('Test') {
+            steps {
+                dir('RIDEHUB USER AUTHENTICATION') {
+                    withCredentials([
+                        string(
+                            credentialsId: 'ridehub-db-url',
+                            variable: 'DB_URL'
+                        ),
+                        usernamePassword(
+                            credentialsId: 'ridehub-db',
+                            usernameVariable: 'DB_USERNAME',
+                            passwordVariable: 'DB_PASSWORD'
+                        )
+                    ]) {
+                        sh 'mvn clean test'
+                    }
+                }
+            }
+        }
+
     }
 
     post {
