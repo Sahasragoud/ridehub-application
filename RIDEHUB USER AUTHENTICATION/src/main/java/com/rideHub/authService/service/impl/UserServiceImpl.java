@@ -133,6 +133,17 @@ public class UserServiceImpl implements UserService {
         return mapToUserResponse(user);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public UserResponse getUserById(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not found."));
+
+        return mapToUserResponse(user);
+    }
+
     private UserResponse mapToUserResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())

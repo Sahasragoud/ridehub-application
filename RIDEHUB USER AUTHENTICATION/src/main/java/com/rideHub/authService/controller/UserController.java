@@ -24,5 +24,4 @@ public class UserController {
                 userService.getProfile(authentication.getName())
         );
     }
-
 }

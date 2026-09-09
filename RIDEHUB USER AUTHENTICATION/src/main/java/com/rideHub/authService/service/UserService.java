@@ -13,4 +13,5 @@ public interface UserService {
 
     UserResponse getProfile(String email);
 
+    UserResponse getUserById(Long userId);
 }
