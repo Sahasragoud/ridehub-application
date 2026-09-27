@@ -1,5 +1,5 @@
+```groovy
 pipeline {
-
     agent any
 
     stages {
@@ -67,7 +67,8 @@ pipeline {
                             ECR_REPOSITORY="ridehub-app-deploy-admin"
 
                             ECR_REGISTRY="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
-                            ECR_IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:$BUILD_NUMBER"
+
+                            ECR_IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:ridehub-auth-service-$BUILD_NUMBER"
 
                             echo "Logging in to Amazon ECR..."
 
@@ -76,7 +77,9 @@ pipeline {
 
                             echo "Tagging Docker image..."
 
-                            docker tag "ridehub-auth-service:$BUILD_NUMBER" "$ECR_IMAGE"
+                            docker tag \
+                            "ridehub-auth-service:$BUILD_NUMBER" \
+                            "$ECR_IMAGE"
 
                             echo "Pushing Docker image to ECR..."
 
@@ -100,3 +103,4 @@ pipeline {
         }
     }
 }
+```
