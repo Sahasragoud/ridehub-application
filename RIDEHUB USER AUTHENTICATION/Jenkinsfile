@@ -90,11 +90,94 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to EC2') {
+            steps {
+                dir('RIDEHUB USER AUTHENTICATION') {
+                    withCredentials([
+                        string(
+                            credentialsId: 'ridehub-db-url',
+                            variable: 'DB_URL'
+                        ),
+                        usernamePassword(
+                            credentialsId: 'ridehub-db',
+                            usernameVariable: 'DB_USERNAME',
+                            passwordVariable: 'DB_PASSWORD'
+                        ),
+                        string(
+                            credentialsId: 'ridehub-jwt-secret',
+                            variable: 'JWT_SECRET'
+                        )
+                    ]) {
+                        sshagent(credentials: ['ec2-ssh-key']) {
+                            sh '''
+                                AWS_REGION="ap-south-2"
+                                AWS_ACCOUNT_ID="115628507548"
+                                ECR_REPOSITORY="ridehub-app-deploy-admin"
+                                ECR_REGISTRY="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+                                ECR_IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:ridehub-auth-service-$BUILD_NUMBER"
+
+                                # NOTE: EC2 public DNS/IP changes on stop/start unless an Elastic IP is attached.
+                                # If the instance is ever stopped and restarted, update this value again.
+                                EC2_HOST="ec2-user@ec2-18-60-107-143.ap-south-2.compute.amazonaws.com"
+
+                                CONTAINER_NAME="ridehub-auth-service"
+                                CONTAINER_PORT="8082"
+
+                                echo "Writing temporary env file for remote deploy..."
+                                cat > deploy.env <<EOF
+DB_URL=${DB_URL}
+DB_USERNAME=${DB_USERNAME}
+DB_PASSWORD=${DB_PASSWORD}
+JWT_SECRET=${JWT_SECRET}
+EOF
+
+                                echo "Copying env file to EC2 instance..."
+                                scp -o StrictHostKeyChecking=no deploy.env ${EC2_HOST}:/home/ec2-user/deploy.env
+
+                                echo "Deploying on EC2 instance..."
+                                ssh -o StrictHostKeyChecking=no ${EC2_HOST} bash -s <<EOF
+set -e
+
+echo "Logging in to ECR on the instance..."
+aws ecr get-login-password --region ${AWS_REGION} | \
+  docker login --username AWS --password-stdin ${ECR_REGISTRY}
+
+echo "Pulling new image..."
+docker pull ${ECR_IMAGE}
+
+echo "Stopping old container (if running)..."
+docker stop ${CONTAINER_NAME} || true
+docker rm ${CONTAINER_NAME} || true
+
+echo "Starting new container..."
+docker run -d \
+  --name ${CONTAINER_NAME} \
+  --restart unless-stopped \
+  -p ${CONTAINER_PORT}:${CONTAINER_PORT} \
+  --env-file /home/ec2-user/deploy.env \
+  ${ECR_IMAGE}
+
+rm -f /home/ec2-user/deploy.env
+
+echo "Deployed ${ECR_IMAGE} as ${CONTAINER_NAME}"
+EOF
+
+                                echo "Cleaning up local env file..."
+                                rm -f deploy.env
+
+                                echo "Deployment complete."
+                            '''
+                        }
+                    }
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo 'Tests and build completed successfully!'
+            echo 'Tests, build, push, and deploy completed successfully!'
         }
 
         failure {
