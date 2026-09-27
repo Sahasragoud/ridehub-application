@@ -53,6 +53,41 @@ pipeline {
                 }
             }
         }
+
+        stage('Push to ECR') {
+            steps {
+                dir('RIDEHUB USER AUTHENTICATION') {
+                    withCredentials([
+                        [$class: 'AmazonWebServicesCredentialsBinding',
+                         credentialsId: 'aws-ecr']
+                    ]) {
+                        sh '''
+                            AWS_REGION="ap-south-2"
+                            AWS_ACCOUNT_ID="115628507548"
+                            ECR_REPOSITORY="ridehub-app-deploy-admin"
+
+                            ECR_REGISTRY="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+                            ECR_IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:$BUILD_NUMBER"
+
+                            echo "Logging in to Amazon ECR..."
+
+                            aws ecr get-login-password --region "$AWS_REGION" | \
+                            docker login --username AWS --password-stdin "$ECR_REGISTRY"
+
+                            echo "Tagging Docker image..."
+
+                            docker tag "ridehub-auth-service:$BUILD_NUMBER" "$ECR_IMAGE"
+
+                            echo "Pushing Docker image to ECR..."
+
+                            docker push "$ECR_IMAGE"
+
+                            echo "Successfully pushed: $ECR_IMAGE"
+                        '''
+                    }
+                }
+            }
+        }
     }
 
     post {
